@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>中国各省风能可开发面积 Top6 横向柱状图</title>
+    <!-- 引入 ECharts 核心库 -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js">
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #164068;
+            font-family: 'Segoe UI', 'Roboto', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1.5rem;
+        }
+
+        .chart-card {
+            max-width: 1000px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+            padding: 0.6rem 0.4rem 0.2rem 0.4rem;
+        }
+
+        .chart-header {
+            padding: 0.8rem 1rem 0.2rem 1rem;
+            text-align: center;
+        }
+
+        .chart-header h1 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #1a4d8c;
+            letter-spacing: -0.3px;
+        }
+
+        #windBarChart {
+            width: 100%;
+            height: 440px;
+            background: #ffffff;
+        }
+
+        @media (max-width: 700px) {
+            body {
+                padding: 1rem;
+            }
+
+            .chart-header h1 {
+                font-size: 1.1rem;
+            }
+
+            #windBarChart {
+                height: 380px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="chart-card">
+        <div class="chart-header">
+            <h1>🌬️ 中国各省风能可开发面积 · TOP6</h1>
+        </div>
+        <div id="windBarChart"></div>
+    </div>
+
+    <script>
+        (function () {
+            const rawData = new Map([
+                ["内蒙古自治区", 874292],
+                ["新疆维吾尔自治区", 527475],
+                ["西藏自治区", 234012],
+                ["甘肃省", 220248],
+                ["广西壮族自治区", 141938],
+                ["云南省", 133102]
+            ]);
+
+            const entries = Array.from(rawData.entries()).map(([province, area]) => ({
+                name: province,
+                value: area
+            })).sort((a, b) => b.value - a.value);
+
+            const provinces = entries.map(item => item.name);
+            const areas = entries.map(item => item.value);
+
+            const colorPalette = ['#2C7DA0', '#3B9B9B', '#61A5C2', '#89C2D9', '#A9D6E5', '#F9C74F'];
+
+            const dom = document.getElementById('windBarChart');
+            const myChart = echarts.init(dom);
+
+            const option = {
+                backgroundColor: 'transparent',
+                legend: {
+                    show: true,
+                    data: ['风能可开发面积'],
+                    right: 20,
+                    top: 6,
+                    textStyle: { fontSize: 12, color: '#2c5a7a', fontWeight: 500 },
+                    icon: 'roundRect',
+                    itemWidth: 16,
+                    itemHeight: 8
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'shadow' },
+                    formatter: function (params) {
+                        const p = params[0];
+                        return `<strong>${p.name}</strong><br/>可开发面积: ${p.value.toLocaleString()} km²`;
+                    },
+                    backgroundColor: 'rgba(0,0,0,0.75)',
+                    borderColor: '#2c7da0',
+                    borderWidth: 1,
+                    textStyle: { color: '#fff', fontSize: 12 }
+                },
+                grid: {
+                    left: '12%',
+                    right: '8%',
+                    top: '12%',
+                    bottom: '8%',
+                    containLabel: false,
+                    borderWidth: 0,
+                    backgroundColor: '#ffffff70',
+                },
+                xAxis: {
+                    type: 'value',
+                    name: '可开发面积 (km²)',
+                    nameLocation: 'middle',
+                    nameGap: 18,
+                    nameTextStyle: {
+                        fontWeight: 500,
+                        fontSize: 11,
+                        color: '#2c5a7a',
+                        fontFamily: 'inherit'
+                    },
+                    axisLabel: {
+                        fontSize: 10,
+                        color: '#3f6b8c',
+                        fontWeight: 500,
+                        formatter: function (value) {
+                            if (value >= 10000) {
+                                return (value / 10000).toFixed(0) + '万';
+                            }
+                            return value.toLocaleString();
+                        }
+                    },
+                    axisLine: {
+                        lineStyle: { color: '#bbd4ed', width: 1.2 }
+                    },
+                    axisTick: { show: false },
+                    splitLine: {
+                        show: true,
+                        lineStyle: { color: '#d9e6f2', width: 1, type: 'dashed' }
+                    },
+                },
+                yAxis: {
+                    type: 'category',
+                    data: provinces,
+                    name: '省份',
+                    nameLocation: 'middle',
+                    nameGap: 100,
+                    nameTextStyle: {
+                        fontSize: 11,
+                        fontWeight: 500,
+                        color: '#2c5a7a'
+                    },
+                    axisLabel: {
+                        fontSize: 12,
+                        fontWeight: 500,
+                        color: '#1e4a76',
+                        margin: 10,
+                        interval: 0,
+                    },
+                    axisLine: { show: false },
+                    axisTick: { show: false },
+                    splitLine: { show: false },
+                },
+                series: [{
+                    type: 'bar',
+                    data: areas,
+                    itemStyle: {
+                        borderRadius: [0, 10, 10, 0],
+                        color: function (params) {
+                            return colorPalette[params.dataIndex % colorPalette.length];
+                        },
+                        shadowColor: 'rgba(0, 50, 80, 0.2)',
+                        shadowBlur: 8,
+                        shadowOffsetX: 3,
+                        shadowOffsetY: 2,
+                    },
+                    label: {
+                        show: true,
+                        position: 'right',
+                        fontWeight: 'bold',
+                        fontSize: 11,
+                        color: '#1b4d6e',
+                        formatter: function (params) {
+                            const val = params.value;
+                            if (val >= 10000) {
+                                return (val / 10000).toFixed(1) + ' 万 km²';
+                            }
+                            return val.toLocaleString() + ' km²';
+                        },
+                        offset: [6, 0]
+                    },
+                    emphasis: {
+                        focus: 'series',
+                        itemStyle: {
+                            shadowBlur: 20,
+                            shadowOffsetX: 5,
+                            shadowColor: 'rgba(0,0,0,0.3)',
+                            borderWidth: 1,
+                            borderColor: '#ffffff'
+                        },
+                        label: {
+                            show: true,
+                            fontWeight: 'bold',
+                            fontSize: 12,
+                            color: '#0f3b5c'
+                        }
+                    },
+                    animation: true,
+                    animationDuration: 1000,
+                    animationEasing: 'cubicOut',
+                }],
+            };
+
+            myChart.setOption(option);
+            window.addEventListener('resize', function () { myChart.resize(); });
+        })();
+    </script>
+</body>
+
+</html>
